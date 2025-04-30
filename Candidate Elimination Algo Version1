@@ -1,0 +1,81 @@
+
+
+import numpy as np
+
+def candidate_elimination(examples):
+    positive_examples = [example for example in examples if example[-1] == 'Yes']
+    negative_examples = [example for example in examples if example[-1] == 'No']
+
+    
+    G = [['?' for _ in range(len(examples[0]) - 1)]]  
+    S = [['Φ' for _ in range(len(examples[0]) - 1)]]  
+    
+    for positive_example in positive_examples:
+      new_S = []
+      for hypothesis in S:
+        consistent = True
+        for i in range(len(positive_example) - 1):
+          if hypothesis[i] != 'Φ' and hypothesis[i] != positive_example[i]:
+            consistent = False
+            break
+        if consistent:
+          new_S.append(hypothesis)
+      S = new_S
+
+      if not S:
+        S = [list(positive_example[:-1])]
+    
+      temp_S = []
+      for s in S:
+          generalized = False
+          for i in range(len(s)):
+              if s[i] == 'Φ':
+                  temp_hypothesis = s[:]
+                  temp_hypothesis[i] = positive_example[i]
+                  temp_S.append(temp_hypothesis)
+                  generalized = True
+          if not generalized:
+              temp_S.append(s)
+      S = temp_S
+    
+   
+    for negative_example in negative_examples:
+        new_G = []
+        for hypothesis in G:
+            consistent = True
+            for i in range(len(negative_example) - 1):
+                if hypothesis[i] != '?' and hypothesis[i] == negative_example[i]:
+                    consistent = False
+                    break
+            if consistent:
+                new_G.append(hypothesis)
+        G = new_G
+
+        temp_G = []
+        for g in G:
+          specific_g = False
+          for i in range(len(g)):
+            if g[i] == '?':
+                temp_hyp = list(g)
+                temp_hyp[i] = negative_example[i]
+                if temp_hyp not in temp_G:
+                  temp_G.append(temp_hyp)
+                specific_g = True
+          if not specific_g:
+              temp_G.append(g)
+        G = temp_G
+
+
+    return S, G
+
+
+examples = [
+    ['Sunny', 'Warm', 'Normal', 'Strong', 'Warm', 'Same', 'Yes'],
+    ['Sunny', 'Warm', 'High', 'Strong', 'Warm', 'Same', 'Yes'],
+    ['Rainy', 'Cold', 'High', 'Strong', 'Warm', 'Change', 'No'],
+    ['Sunny', 'Warm', 'High', 'Strong', 'Cool', 'Change', 'Yes']
+]
+
+S, G = candidate_elimination(examples)
+print("Specific Boundary (S):", S)
+print("General Boundary (G):", G)
